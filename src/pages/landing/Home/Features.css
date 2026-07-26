@@ -1,0 +1,439 @@
+/* ───────────────────────────────────────── */
+/* FEATURES SECTION                         */
+/* ───────────────────────────────────────── */
+
+.features-section {
+  position: relative;
+  overflow: hidden;
+
+  padding: 7rem 2rem;
+
+  background: #000;
+}
+
+/* ───────────────────────────────────────── */
+/* BACKGROUND GLOW                          */
+/* ───────────────────────────────────────── */
+
+.features-bg-glow {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(59,130,246,0.07),
+      transparent 72%
+    );
+}
+
+/* ───────────────────────────────────────── */
+/* HEADER                                   */
+/* ───────────────────────────────────────── */
+
+.features-label {
+  margin-bottom: 1rem;
+
+  text-align: center;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  color: #6366f1;
+}
+
+.features-heading {
+  margin-bottom: 1.2rem;
+
+  text-align: center;
+
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  font-weight: 800;
+
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+
+  color: #fff;
+
+  text-shadow:
+    0 0 35px rgba(99,102,241,0.14);
+}
+
+.features-subheading {
+  max-width: 620px;
+
+  margin: 0 auto 4.5rem;
+
+  text-align: center;
+
+  font-size: 1.05rem;
+  line-height: 1.8;
+
+  color: #8b95a7;
+}
+
+/* ───────────────────────────────────────── */
+/* GRID                                     */
+/* ───────────────────────────────────────── */
+
+.features-grid {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 1.5rem;
+
+  max-width: 1200px;
+
+  margin: 0 auto;
+}
+
+/* ───────────────────────────────────────── */
+/* CARD                                     */
+/* ───────────────────────────────────────── */
+
+.fcard {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 2rem 1.8rem;
+
+  border-radius: 24px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(14,14,26,0.98),
+      rgba(7,7,16,1)
+    );
+
+  border:
+    1px solid rgba(99,102,241,0.16);
+
+  backdrop-filter: blur(14px);
+
+  box-shadow:
+    0 10px 35px rgba(0,0,0,0.42),
+    0 0 0 1px rgba(255,255,255,0.015) inset;
+
+  transition:
+    transform 0.45s cubic-bezier(0.22,1,0.36,1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+}
+
+/* ───────────────────────────────────────── */
+/* INNER GLASS HIGHLIGHT                    */
+/* ───────────────────────────────────────── */
+
+.fcard .fcard-inner-highlight {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 120px;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.035),
+      transparent
+    );
+
+  opacity: 0.9;
+}
+
+/* ───────────────────────────────────────── */
+/* CARD HOVER                               */
+/* ───────────────────────────────────────── */
+
+.fcard:hover {
+  transform:
+    translateY(-10px)
+    scale(1.015);
+
+  border-color:
+    rgba(99,102,241,0.34);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18,18,32,1),
+      rgba(8,8,18,1)
+    );
+
+  box-shadow:
+    0 30px 80px rgba(99,102,241,0.18),
+    0 0 0 1px rgba(99,102,241,0.10) inset,
+    0 0 40px rgba(168,85,247,0.10);
+}
+
+/* ───────────────────────────────────────── */
+/* GLOW OVERLAY                             */
+/* ───────────────────────────────────────── */
+
+.fcard::before {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(59,130,246,0.18),
+      transparent 45%
+    );
+
+  transition:
+    opacity 0.4s ease;
+}
+
+.fcard:hover::before {
+  opacity: 1;
+}
+
+/* ───────────────────────────────────────── */
+/* PREMIUM BORDER BEAM                      */
+/* ───────────────────────────────────────── */
+/* ───────────────────────────────────────── */
+/* CLEAN OUTLINE ENERGY BEAM                */
+/* ───────────────────────────────────────── */
+
+.fcard::after {
+  content: '';
+
+  position: absolute;
+
+  inset: 0;
+
+  border-radius: inherit;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  /* ONLY SMALL LIGHT SEGMENT */
+
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 352deg,
+
+      rgba(56,189,248,1) 355deg,
+      rgba(99,102,241,1) 357deg,
+      rgba(168,85,247,1) 359deg,
+
+      transparent 360deg
+    );
+
+  /* VERY THIN BORDER */
+
+  padding: 1px;
+
+  /* TRUE BORDER MASK */
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  /* CLEAN GLOW */
+
+  filter:
+    drop-shadow(0 0 4px rgba(56,189,248,0.32))
+    drop-shadow(0 0 10px rgba(99,102,241,0.18));
+
+  transition:
+    opacity 0.25s ease;
+}
+
+/* HOVER */
+
+.fcard:hover::after {
+  opacity: 1;
+
+  animation:
+    cleanBeamRotate 2.4s linear infinite;
+}
+
+/* ───────────────────────────────────────── */
+/* OUTLINE ROTATION                         */
+/* ───────────────────────────────────────── */
+
+@keyframes cleanBeamRotate {
+
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ───────────────────────────────────────── */
+/* BORDER BEAM ROTATION                     */
+/* ───────────────────────────────────────── */
+
+@keyframes borderBeamRotate {
+
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ───────────────────────────────────────── */
+/* NUMBER                                   */
+/* ───────────────────────────────────────── */
+
+.fcard-number {
+  position: absolute;
+
+  top: 1.5rem;
+  right: 1.5rem;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color:
+    rgba(99,102,241,0.35);
+}
+
+/* ───────────────────────────────────────── */
+/* ICON WRAPPER                             */
+/* ───────────────────────────────────────── */
+
+.fcard-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+
+  margin-bottom: 1.4rem;
+
+  border-radius: 18px;
+
+  background:
+    rgba(99,102,241,0.08);
+
+  border:
+    1px solid rgba(99,102,241,0.18);
+
+  transition:
+    transform 0.35s ease,
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.fcard-icon-wrap i {
+  font-size: 24px;
+
+  color: #818cf8;
+
+  transition:
+    color 0.35s ease;
+}
+
+.fcard:hover .fcard-icon-wrap {
+  transform: scale(1.08);
+
+  background:
+    rgba(99,102,241,0.18);
+
+  border-color:
+    rgba(99,102,241,0.42);
+
+  box-shadow:
+    0 0 30px rgba(99,102,241,0.28);
+}
+
+.fcard:hover .fcard-icon-wrap i {
+  color: #d8b4fe;
+}
+
+/* ───────────────────────────────────────── */
+/* CARD TEXT                                */
+/* ───────────────────────────────────────── */
+
+.fcard-title {
+  margin-bottom: 0.8rem;
+
+  font-size: 1rem;
+  font-weight: 700;
+
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+
+  color: #f1f5f9;
+}
+
+.fcard-desc {
+  font-size: 0.88rem;
+  line-height: 1.8;
+
+  color: #64748b;
+}
+
+/* ───────────────────────────────────────── */
+/* RESPONSIVE                               */
+/* ───────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+
+  .features-section {
+    padding: 5rem 1.25rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-heading {
+    font-size: 2.4rem;
+  }
+
+  .fcard {
+    padding: 1.6rem;
+  }
+}

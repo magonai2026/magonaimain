@@ -1,0 +1,212 @@
+/* ── Impact Stats — dark glowing redesign ───────────────────────────────── */
+
+.impact-stats-section {
+  position: relative;
+  padding: 7rem 5%;
+  background: #000000;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+/* Noise texture overlay */
+.impact-stats-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+
+.impact-stats-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  max-width: 1140px;
+  width: 100%;
+}
+
+.impact-stats-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
+.impact-stats-eyebrow-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: inline-block;
+}
+
+.impact-stats-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.04em;
+  margin: 0;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.impact-stats-subtitle {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.45);
+  font-family: var(--font-serif);
+  text-align: center;
+  max-width: 520px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.impact-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.impact-stat-card {
+  position: relative;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 24px;
+  padding: 2.75rem 1.75rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset,
+              0 4px 32px rgba(0,0,0,0.4);
+  transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Top accent line */
+.impact-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 0 0 4px 4px;
+  background: var(--card-accent, rgba(255,255,255,0.15));
+  opacity: 0.7;
+  transition: opacity 0.35s ease, left 0.35s ease, right 0.35s ease;
+}
+
+.impact-stat-card:hover {
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.07) inset,
+              0 8px 48px rgba(0,0,0,0.5),
+              0 0 60px var(--card-glow, rgba(255,255,255,0.04));
+  transform: translateY(-6px);
+}
+
+.impact-stat-card:hover::before {
+  left: 10%;
+  right: 10%;
+  opacity: 1;
+}
+
+.impact-stat-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.35s ease;
+}
+
+.impact-stat-card:hover .impact-stat-glow {
+  opacity: 1;
+}
+
+/* Icon badge above number */
+.impact-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+  background: var(--card-icon-bg, rgba(255,255,255,0.07));
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.impact-stat-number {
+  font-size: 4.2rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  background: var(--card-number-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px var(--card-glow-color, rgba(255,255,255,0.3)));
+}
+
+.impact-stat-unit {
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-left: 3px;
+}
+
+.impact-stat-divider {
+  width: 32px;
+  height: 1px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.impact-stat-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 1;
+}
+
+.impact-stat-sub {
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.38);
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .impact-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .impact-stats-title { font-size: 2.2rem; }
+}
+
+@media (max-width: 540px) {
+  .impact-stats-grid { grid-template-columns: 1fr; }
+  .impact-stats-title { font-size: 1.8rem; }
+  .impact-stat-number { font-size: 3.2rem; }
+}

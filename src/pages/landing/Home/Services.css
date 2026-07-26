@@ -1,0 +1,491 @@
+/* ── Services ────────────────────────────────────────────────────────────── */
+
+.services-section {
+  position: relative;
+  overflow: hidden;
+
+  padding: 5rem 5%;
+
+  background: #000;
+}
+
+/* ───────────────────────────────────────── */
+/* HEADER                                   */
+/* ───────────────────────────────────────── */
+
+.services-header {
+  text-align: center;
+
+  max-width: 860px;
+
+  margin:
+    0 auto
+    2.8rem;
+}
+
+.services-eyebrow {
+  display: inline-block;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+
+  color: rgba(129,140,248,0.72);
+
+  margin-bottom: 0.9rem;
+}
+
+.services-title {
+  font-size: clamp(2.6rem, 5vw, 4.4rem);
+
+  font-weight: 800;
+
+  line-height: 1.05;
+
+  letter-spacing: -0.06em;
+
+  color: #fff;
+
+  margin: 0 0 1rem;
+
+  text-shadow:
+    0 0 35px rgba(99,102,241,0.12);
+}
+
+.services-subtitle {
+  font-size: 1.05rem;
+
+  line-height: 1.8;
+
+  color: rgba(255,255,255,0.58);
+
+  max-width: 700px;
+
+  margin: 0 auto;
+}
+
+/* ───────────────────────────────────────── */
+/* GRID                                     */
+/* ───────────────────────────────────────── */
+
+.services-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 2rem;
+
+  max-width: 1200px;
+
+  margin: 2.5rem auto 0;
+}
+
+/* ───────────────────────────────────────── */
+/* CARD                                     */
+/* ───────────────────────────────────────── */
+
+.service-card {
+  position: relative;
+
+  isolation: isolate;
+
+  overflow: hidden;
+
+  padding: 2rem;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18,18,32,0.96),
+      rgba(8,8,18,1)
+    );
+
+  border:
+    1px solid rgba(99,102,241,0.16);
+
+  backdrop-filter: blur(14px);
+
+  box-shadow:
+    0 10px 35px rgba(0,0,0,0.42),
+    0 0 0 1px rgba(255,255,255,0.015) inset;
+
+  display: flex;
+  flex-direction: column;
+
+  transition:
+    transform 0.45s cubic-bezier(0.22,1,0.36,1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+}
+
+/* ───────────────────────────────────────── */
+/* FLOATING GLOW                            */
+/* ───────────────────────────────────────── */
+
+.service-card .card-glow {
+  position: absolute;
+
+  width: 160px;
+  height: 160px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(99,102,241,0.16),
+      transparent 70%
+    );
+
+  filter: blur(50px);
+
+  top: -40px;
+  right: -40px;
+
+  z-index: -1;
+
+  opacity: 0;
+
+  transition:
+    opacity 0.4s ease;
+}
+
+.service-card:hover .card-glow {
+  opacity: 1;
+}
+
+/* ───────────────────────────────────────── */
+/* TOP LIGHT                                */
+/* ───────────────────────────────────────── */
+
+.service-card::before {
+  content: '';
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 140px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.04),
+      transparent
+    );
+
+  pointer-events: none;
+}
+
+/* ───────────────────────────────────────── */
+/* ELECTRIC BORDER                          */
+/* ───────────────────────────────────────── */
+
+.service-card::after {
+  content: '';
+
+  position: absolute;
+
+  inset: 0;
+
+  border-radius: inherit;
+
+  padding: 1px;
+
+  opacity: 0;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 344deg,
+
+      rgba(56,189,248,1) 350deg,
+      rgba(99,102,241,1) 354deg,
+      rgba(168,85,247,1) 358deg,
+
+      transparent 360deg
+    );
+
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter:
+    drop-shadow(0 0 5px rgba(56,189,248,0.35))
+    drop-shadow(0 0 12px rgba(99,102,241,0.22));
+
+  transition:
+    opacity 0.3s ease;
+}
+
+/* ───────────────────────────────────────── */
+/* HOVER                                    */
+/* ───────────────────────────────────────── */
+
+.service-card:hover {
+  transform:
+    translateY(-6px)
+    scale(1.01);
+
+  border-color:
+    rgba(99,102,241,0.34);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(22,22,38,1),
+      rgba(10,10,20,1)
+    );
+
+  box-shadow:
+    0 30px 80px rgba(99,102,241,0.22),
+    0 0 40px rgba(168,85,247,0.08),
+    0 0 0 1px rgba(99,102,241,0.10) inset;
+}
+
+.service-card:hover::after {
+  opacity: 1;
+
+  animation:
+    electricRotate 2.8s linear infinite;
+}
+
+/* ───────────────────────────────────────── */
+/* BORDER ROTATION                          */
+/* ───────────────────────────────────────── */
+
+@keyframes electricRotate {
+
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ───────────────────────────────────────── */
+/* TITLE                                    */
+/* ───────────────────────────────────────── */
+
+.service-card h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+
+  color: #f1f5f9;
+
+  margin-bottom: 0.9rem;
+
+  letter-spacing: -0.03em;
+
+  line-height: 1.3;
+}
+
+/* ───────────────────────────────────────── */
+/* DESCRIPTION                              */
+/* ───────────────────────────────────────── */
+
+.service-card p {
+  font-size: 0.95rem;
+
+  color: rgba(255,255,255,0.58);
+
+  line-height: 1.72;
+
+  margin-bottom: 1.2rem;
+
+  flex: 1;
+}
+
+/* ───────────────────────────────────────── */
+/* FEATURE LIST                             */
+/* ───────────────────────────────────────── */
+
+.service-features {
+  list-style: none;
+
+  padding: 0;
+  margin: 0;
+
+  border-top:
+    1px solid rgba(99,102,241,0.12);
+
+  padding-top: 1rem;
+}
+
+.service-features li {
+  font-size: 0.9rem;
+
+  color: rgba(255,255,255,0.82);
+
+  margin-bottom: 0.85rem;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.7rem;
+
+  font-weight: 500;
+}
+
+/* Checkmark */
+
+.service-features li::before {
+  content: '✓';
+
+  color: #818cf8;
+
+  font-weight: 800;
+
+  font-size: 0.95rem;
+
+  text-shadow:
+    0 0 12px rgba(129,140,248,0.45);
+}
+
+/* ───────────────────────────────────────── */
+/* CTA                                      */
+/* ───────────────────────────────────────── */
+
+.services-cta {
+  display: flex;
+  justify-content: center;
+
+  margin-top: 3rem;
+}
+
+/* ───────────────────────────────────────── */
+/* BUTTON                                   */
+/* ───────────────────────────────────────── */
+
+.services-join-btn {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 1rem 2.6rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #9333ea
+    );
+
+  border: none;
+
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.services-join-btn::before {
+  content: '';
+
+  position: absolute;
+
+  top: 0;
+  left: -120%;
+
+  width: 100%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.22),
+      transparent
+    );
+
+  transition:
+    left 0.8s ease;
+}
+
+.services-join-btn:hover::before {
+  left: 120%;
+}
+
+.services-join-btn:hover {
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 14px 45px rgba(99,102,241,0.35);
+}
+
+/* ───────────────────────────────────────── */
+/* RESPONSIVE                               */
+/* ───────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+
+  .services-grid {
+    grid-template-columns: 1fr;
+    max-width: 650px;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .services-section {
+    padding: 4rem 1.25rem;
+  }
+
+  .services-header {
+    margin-bottom: 2rem;
+  }
+
+  .services-title {
+    font-size: 2.4rem;
+  }
+
+  .services-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .services-grid {
+    gap: 1.4rem;
+    margin-top: 2rem;
+  }
+
+  .service-card {
+    padding: 1.7rem;
+  }
+
+  .service-card h3 {
+    font-size: 1.18rem;
+  }
+
+  .service-card p {
+    font-size: 0.92rem;
+  }
+
+  .services-join-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

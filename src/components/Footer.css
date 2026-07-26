@@ -1,0 +1,150 @@
+/* Footer Base Styles */
+.footer {
+    background-color: #1a1a1a;
+    color: #e5e2dd;
+    padding: 4rem 5% 1.5rem;
+    font-family: inherit;
+    border-top: 1px solid #333;
+    /* Added rounded corners to the top left and top right */
+    border-radius: 24px 24px 0 0; 
+    /* Optional: ensures content doesn't bleed past the rounded corners */
+    overflow: hidden; 
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Grid Layout */
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1.4fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+/* Brand Column Specifics */
+.footer-brand {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.footer-desc {
+    color: #a3a3a3;
+    line-height: 1.7;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    max-width: 300px;
+}
+
+.footer-contact-info p {
+    color: #a3a3a3;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.footer-contact-info a {
+    color: #e5e2dd;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-contact-info a:hover {
+    color: #a855f7;
+}
+
+/* Links Columns */
+.footer-col h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.03em;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-links a {
+    color: #a3a3a3;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.footer-links a:hover {
+    color: #a855f7;
+    transform: translateX(3px);
+}
+
+/* Bottom Bar */
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid #333;
+}
+
+.copyright {
+    color: #737373;
+    font-size: 0.9rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1.2rem;
+}
+
+.social-links a {
+    color: #a3a3a3;
+    width: 20px;
+    height: 20px;
+    display: block;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.social-links a:hover {
+    color: #a855f7;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .footer-desc {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    /* On mobile, smaller border radius looks better */
+    .footer {
+        border-radius: 16px 16px 0 0;
+        padding: 3rem 5% 1.5rem;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    .footer-bottom {
+        flex-direction: column-reverse;
+        gap: 1rem;
+        text-align: center;
+    }
+}

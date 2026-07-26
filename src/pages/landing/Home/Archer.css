@@ -1,0 +1,64 @@
+/* ── Archer section ───────────────────────────────────────────────────────── */
+
+.archer-section {
+  background: var(--color-surface);
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+.archer-subtitle {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 3rem;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+}
+
+.archer-animation-container {
+  max-width: 960px;
+  margin: 0 auto;
+  overflow: visible;
+  padding: 20px;
+}
+
+#bow-and-arrow-group { animation: bow-recoil-animation 4s ease-in-out infinite; }
+#arrow               { animation: shoot-arrow-animation 4s ease-in-out infinite; }
+#bow-string          { animation: bow-string-animation 4s ease-in-out infinite; }
+#impact-mark         { animation: impact-animation 4s ease-in-out infinite; }
+
+@keyframes shoot-arrow-animation {
+  0%     { transform: translateX(60px);  opacity: 1; }
+  20%    { transform: translateX(10px);  opacity: 1; }
+  31%    { transform: translateX(60px);  opacity: 1; }
+  32%    { transform: translateX(210px); opacity: 1; }
+  50%    { transform: translateX(730px); opacity: 1; }
+  85%    { transform: translateX(730px); opacity: 1; }
+  90%    { transform: translateX(730px); opacity: 0; }
+  90.01% { transform: translateX(60px);  opacity: 0; }
+  100%   { transform: translateX(60px);  opacity: 1; }
+}
+
+@keyframes bow-string-animation {
+  0%   { d: path('M50,40 C50,133, 50,227, 50,320'); }
+  20%  { d: path('M50,40 Q0,180 50,320'); }
+  30%  { d: path('M50,40 Q0,180 50,320'); }
+  31%  { d: path('M50,40 C50,133, 50,227, 50,320'); }
+  100% { d: path('M50,40 C50,133, 50,227, 50,320'); }
+}
+
+@keyframes bow-recoil-animation {
+  0%, 30% { transform: translateX(0); }
+  35%     { transform: translateX(-15px); }
+  45%     { transform: translateX(0); }
+  100%    { transform: translateX(0); }
+}
+
+@keyframes impact-animation {
+  0%, 49.9% { opacity: 0; transform: scale(0);   transform-origin: center; }
+  50%        { opacity: 1; transform: scale(0.5); }
+  52%        { opacity: 1; transform: scale(1.2); }
+  54%        { opacity: 1; transform: scale(1);   }
+  89%        { opacity: 1; transform: scale(1);   }
+  90%        { opacity: 0; transform: scale(0.8); }
+  100%       { opacity: 0; transform: scale(0);   }
+}

@@ -1,0 +1,44 @@
+services:
+
+  # Express gateway — handles /api proxying to your backends
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: node server.js
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+    restart: unless-stopped
+
+  # Vite dev server — hot reload, proxies /api to gateway service
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      NODE_ENV: development
+      VITE_GATEWAY_URL: http://gateway:3000
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+volumes:
+  node_modules:
+
+networks:
+  default:
+    name: niyantri-dev
+    external: true
