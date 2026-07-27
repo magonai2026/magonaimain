@@ -1217,6 +1217,21 @@ app.post('/api/scan/fix/verify/stream',
 app.get('/api/scan/credits/history/:userId',
   authenticateToken,
   (req, res) => forwardToScanner('get', `/scan/credits/history/${req.params.userId}`, req, res));
+
+// ── Knowledge graph ───────────────────────────────────────────────────────────
+// Returns the Cytoscape-ready { nodes, edges } graph for a whole scan group
+// (File / Function / Infrastructure / ExternalEndpoint nodes and the
+// IMPORTS / CONTAINS / CALLS / EXTERNAL_CALL / CROSS_REPO_CALLS / USES edges).
+app.get('/api/scan/graph/:groupScanId',
+  authenticateToken,
+  (req, res) => forwardToScanner('get', `/scan/graph/${req.params.groupScanId}`, req, res));
+
+// ── Group deletion ────────────────────────────────────────────────────────────
+// Wipes every repo in a scan group: Mongo docs, disk files, phase storage,
+// fix workspaces and the Neo4j graph for that workspace.
+app.delete('/api/scan/history/group/:groupScanId',
+  authenticateToken,
+  (req, res) => forwardToScanner('delete', `/scan/history/group/${req.params.groupScanId}`, req, res));
 // ─── DAST (ZAP) Routes ────────────────────────────────────────────────────────
 //
 // All /api/dast/* requests are forwarded to the local ZAP Flask bridge

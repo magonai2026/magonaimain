@@ -10,6 +10,9 @@ interface ScanSummary {
   total_vulnerabilities: number;
   total_files: number;
   phases_completed: number;
+  /** Present for scans that ran as part of a (possibly multi-repo) group. */
+  group_scan_id?: string;
+  session_id?: string;
   severity_counts?: {
     critical: number;
     high: number;
@@ -18,6 +21,18 @@ interface ScanSummary {
     info: number;
   };
 }
+
+/**
+ * A scan can be resumed when it stopped before phase 4 but got far enough
+ * for phase data to exist on disk. Matches the backend guard in
+ * POST /scan/resume (rejects phases_completed === 0 and status "complete").
+ */
+const isResumable = (scan: ScanSummary): boolean => {
+  const status = (scan.status || '').toLowerCase();
+  if (status === 'complete') return false;
+  const phases = scan.phases_completed ?? 0;
+  return phases >= 1 && phases < 4;
+};
 
 const SEV: Record<string, { color: string; bg: string; border: string; dot: string }> = {
   critical: { color: '#f87171', bg: 'rgba(244,63,94,0.12)',  border: 'rgba(244,63,94,0.28)',  dot: '#f43f5e' },
@@ -201,6 +216,26 @@ const CSS = `
   .sh-delete-btn:hover:not(:disabled) { background: rgba(244,63,94,0.16); border-color: rgba(244,63,94,0.4); }
   .sh-delete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+  /* ── Secondary card actions (resume / graph / session / group delete) ── */
+  .sh-act-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700;
+    cursor: pointer; font-family: 'Instrument Sans', sans-serif;
+    background: rgba(99,102,241,0.08); color: #818cf8;
+    border: 1px solid rgba(99,102,241,0.22); transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .sh-act-btn:hover:not(:disabled) { background: rgba(99,102,241,0.16); border-color: rgba(99,102,241,0.45); color: #a5b4fc; }
+  .sh-act-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .sh-act-btn.resume { background: rgba(245,158,11,0.09); color: #fbbf24; border-color: rgba(245,158,11,0.25); }
+  .sh-act-btn.resume:hover:not(:disabled) { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.45); color: #fcd34d; }
+
+  .sh-act-btn.danger { background: rgba(244,63,94,0.07); color: #fb7185; border-color: rgba(244,63,94,0.2); }
+  .sh-act-btn.danger:hover:not(:disabled) { background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.4); color: #fda4af; }
+
+  .sh-act-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+
   .sh-confirm-row {
     display: flex; gap: 6px; align-items: center; flex: 1;
     padding: 7px 12px; border-radius: 8px;
@@ -293,6 +328,9 @@ const ScanHistoryPage: React.FC = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [search, setSearch]                   = useState('');
   const [filter, setFilter]                   = useState<FilterType>('all');
+  const [resumingId, setResumingId]           = useState<string | null>(null);
+  const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null);
+  const [confirmGroupId, setConfirmGroupId]   = useState<string | null>(null);
 
   const listAbortRef = useRef<AbortController | null>(null);
 
@@ -337,6 +375,93 @@ const ScanHistoryPage: React.FC = () => {
     } catch (err: any) {
       showToast(err.message || 'Failed to delete scan', 'error');
     } finally { setDeletingId(null); }
+  };
+
+  // ── Resume — POST /api/scan/resume (SSE) ───────────────────────────────────
+  // The backend replies with an event stream, so we read it to completion and
+  // surface progress as toasts rather than firing and forgetting.
+  const handleResume = async (e: React.MouseEvent, scanId: string) => {
+    e.stopPropagation();
+    setResumingId(scanId);
+    try {
+      const res = await fetch('/api/scan/resume', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scan_id: scanId }),
+      });
+
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error((d as any).detail || `Resume failed (${res.status})`);
+      }
+      if (!res.body) throw new Error('Resume stream unavailable');
+
+      showToast('Scan resumed — continuing from the last saved phase', 'success');
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer    = '';
+      let failed: string | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop() ?? '';
+
+        for (const chunk of chunks) {
+          const line = chunk.split('\n').find(l => l.startsWith('data:'));
+          if (!line) continue;
+          try {
+            const evt = JSON.parse(line.slice(5).trim());
+            if (evt.event === 'error')    failed = evt.message || 'Scan failed';
+            if (evt.event === 'complete') failed = null;
+          } catch {
+            // Ignore partial/non-JSON frames
+          }
+        }
+      }
+
+      if (failed) {
+        showToast(failed, 'error');
+      } else {
+        showToast('Scan complete', 'success');
+        navigate(`/scan/${scanId}`);
+      }
+      fetchHistory();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to resume scan', 'error');
+    } finally {
+      setResumingId(null);
+    }
+  };
+
+  // ── Group delete — DELETE /api/scan/history/group/:groupScanId ─────────────
+  // Wipes every repo in the group plus its Neo4j graph, so it is confirmed
+  // separately from the single-scan delete.
+  const handleGroupDelete = async (e: React.MouseEvent, groupScanId: string) => {
+    e.stopPropagation();
+    setDeletingGroupId(groupScanId);
+    setConfirmGroupId(null);
+    try {
+      const res = await fetch(`/api/scan/history/group/${groupScanId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error((d as any).detail || 'Group delete failed');
+      }
+      setScans(prev => prev.filter(s => s.group_scan_id !== groupScanId));
+      showToast('Scan group deleted — including its knowledge graph', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete scan group', 'error');
+    } finally {
+      setDeletingGroupId(null);
+    }
   };
 
   const formatDate = (iso: string) => {
@@ -520,6 +645,9 @@ const ScanHistoryPage: React.FC = () => {
             const isDeleting   = deletingId  === scan.scan_id;
             const isConfirming = confirmDeleteId === scan.scan_id;
             const isComplete   = getScanStatus(scan);
+            const isResuming        = resumingId === scan.scan_id;
+            const isDeletingGroup   = !!scan.group_scan_id && deletingGroupId === scan.group_scan_id;
+            const isConfirmingGroup = !!scan.group_scan_id && confirmGroupId  === scan.group_scan_id;
 
             return (
               <div
@@ -591,6 +719,78 @@ const ScanHistoryPage: React.FC = () => {
                       })}
                     </div>
                   )}
+
+                  {/* Secondary actions: resume / graph / session / group delete */}
+                  <div className="sh-act-row" onClick={e => e.stopPropagation()}>
+                    {isResumable(scan) && (
+                      <button
+                        className="sh-act-btn resume"
+                        onClick={e => handleResume(e, scan.scan_id)}
+                        disabled={isResuming}
+                        title="Continue this scan from its last completed phase"
+                      >
+                        {isResuming ? (
+                          <><span className="sh-btn-spinner" /> Resuming…</>
+                        ) : (
+                          <>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="6,4 20,12 6,20" />
+                            </svg>
+                            Resume
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {scan.group_scan_id && (
+                      <button
+                        className="sh-act-btn"
+                        onClick={() => navigate(`/graph/${scan.group_scan_id}`)}
+                        title="Open the knowledge graph for this scan group"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="7" r="2.5" /><circle cx="12" cy="17.5" r="2.5" />
+                          <path d="M7.9 7.6 10.5 15.4" /><path d="M16.2 8.9 13.6 15.6" /><path d="M8.5 6.3h7" />
+                        </svg>
+                        Graph
+                      </button>
+                    )}
+
+                    {scan.session_id && (
+                      <button
+                        className="sh-act-btn"
+                        onClick={() => navigate(`/session/${encodeURIComponent(scan.session_id!)}`)}
+                        title="See every scan from the same session"
+                      >
+                        Session
+                      </button>
+                    )}
+
+                    {scan.group_scan_id && (
+                      isConfirmingGroup ? (
+                        <div className="sh-confirm-row">
+                          <span>Delete the whole group?</span>
+                          <button
+                            className="sh-confirm-yes"
+                            onClick={e => handleGroupDelete(e, scan.group_scan_id!)}
+                            disabled={isDeletingGroup}
+                          >
+                            {isDeletingGroup ? '…' : 'Delete all'}
+                          </button>
+                          <button className="sh-confirm-no" onClick={e => { e.stopPropagation(); setConfirmGroupId(null); }}>Cancel</button>
+                        </div>
+                      ) : (
+                        <button
+                          className="sh-act-btn danger"
+                          onClick={e => { e.stopPropagation(); setConfirmGroupId(scan.group_scan_id!); }}
+                          disabled={isDeletingGroup}
+                          title="Delete every repo in this scan group, its files and its graph"
+                        >
+                          Delete group
+                        </button>
+                      )
+                    )}
+                  </div>
 
                   {/* Footer row: delete + view hint */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={e => e.stopPropagation()}>

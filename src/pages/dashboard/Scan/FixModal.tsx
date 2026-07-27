@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import type { Vulnerability } from './scanTypes';
 import { safeStr, SEVERITY_CONFIG } from './scanVisualUtils';
+import FixWorkspacePanel from './FixWorkspacePanel';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,10 @@ const FixModal: React.FC<FixModalProps> = ({ vuln, scanId, repoUrl, githubToken,
   const [tokenLoading, setTokenLoading] = useState(!githubToken && !isUploadScan);
   // Track retry attempt number so we can show it in the loading indicator
   const [retryCount,   setRetryCount]   = useState(0);
+
+  // Live agent progress (last few SSE events) + the files its PR touched
+  const [steps,        setSteps]        = useState<string[]>([]);
+  const [filesFixed,   setFilesFixed]   = useState<string[]>([]);
 
   const effectiveToken = fetchedToken || manualToken;
 
@@ -115,13 +120,18 @@ const FixModal: React.FC<FixModalProps> = ({ vuln, scanId, repoUrl, githubToken,
     return () => { cancelled = true; };
   }, [githubToken, isUploadScan]);
 
-  // ── POST /scan/fix — GitHub PR fix ─────────────────────────────────────────
+  // ── POST /scan/fix/agentic — GitHub PR fix (SSE) ───────────────────────────
+  // The scanner drives the whole fix through tool calls and streams its
+  // progress, so this reads the event stream instead of awaiting one JSON
+  // body. Events: thinking | progress | complete | error.
   const handleCreate = async () => {
     if (!effectiveToken.trim()) return;
     setState('loading');
     setErrMsg(null);
+    setSteps([]);
+    setFilesFixed([]);
     try {
-      const res = await fetch('/api/scan/fix', {
+      const res = await fetch('/api/scan/fix/agentic', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -140,8 +150,45 @@ const FixModal: React.FC<FixModalProps> = ({ vuln, scanId, repoUrl, githubToken,
         const msg = typeof detail === 'string' ? detail : detail?.message || data?.message || `Request failed (${res.status})`;
         throw new Error(msg);
       }
-      const data = await res.json();
-      setPrUrl(data.pr_url ?? null);
+      if (!res.body) throw new Error('Fix stream unavailable.');
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer    = '';
+      let completed = false;
+      let streamError: string | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? '';
+
+        for (const frame of frames) {
+          const line = frame.split('\n').find(l => l.startsWith('data:'));
+          if (!line) continue;
+          let evt: any;
+          try { evt = JSON.parse(line.slice(5).trim()); } catch { continue; }
+
+          if (evt.event === 'thinking' && evt.message) {
+            setSteps(prev => [...prev.slice(-5), safeStr(evt.message)]);
+          } else if (evt.event === 'progress') {
+            const label = evt.file ? `${evt.status ?? 'working'} — ${evt.file}` : safeStr(evt.status ?? '');
+            if (label) setSteps(prev => [...prev.slice(-5), label]);
+          } else if (evt.event === 'complete') {
+            completed = true;
+            setPrUrl(evt.pr_url ?? null);
+            setFilesFixed(Array.isArray(evt.files_fixed) ? evt.files_fixed : []);
+          } else if (evt.event === 'error') {
+            streamError = safeStr(evt.message) || 'Fix failed.';
+          }
+        }
+      }
+
+      if (streamError && !completed) throw new Error(streamError);
+      if (!completed) throw new Error('Fix ended before a pull request was created.');
       setState('success');
     } catch (e: any) {
       setErrMsg(e.message ?? 'Something went wrong.');
@@ -208,7 +255,9 @@ const FixModal: React.FC<FixModalProps> = ({ vuln, scanId, repoUrl, githubToken,
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 420,
+          // Widen while the agent workspace panel is on screen so the file
+          // tree and code preview have room.
+          width: '100%', maxWidth: (!isUploadScan && state === 'loading') ? 560 : 420,
           background: '#fff', borderRadius: 18,
           boxShadow: '0 24px 64px rgba(0,0,0,0.2), 0 0 0 1.5px rgba(0,0,0,0.06)',
           overflow: 'hidden',
@@ -448,6 +497,33 @@ const FixModal: React.FC<FixModalProps> = ({ vuln, scanId, repoUrl, githubToken,
                 </div>
               )}
 
+              {/* Live agent progress + workspace — only while the fix runs */}
+              {state === 'loading' && (
+                <>
+                  {steps.length > 0 && (
+                    <div style={{
+                      background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.15)',
+                      borderRadius: 9, padding: '9px 12px', marginBottom: 14,
+                      display: 'flex', flexDirection: 'column', gap: 4,
+                    }}>
+                      {steps.map((s, i) => (
+                        <div
+                          key={`${i}-${s}`}
+                          style={{
+                            fontSize: 11, color: i === steps.length - 1 ? '#4338ca' : '#94a3b8',
+                            fontWeight: i === steps.length - 1 ? 600 : 400,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <FixWorkspacePanel scanId={scanId} active={true} />
+                </>
+              )}
+
               {/* Actions */}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button
@@ -496,9 +572,24 @@ const FixModal: React.FC<FixModalProps> = ({ vuln, scanId, repoUrl, githubToken,
                 <CheckCircle2 size={24} color="#16a34a" />
               </div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 6 }}>PR Created!</div>
-              <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 18 }}>
+              <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: filesFixed.length ? 12 : 18 }}>
                 Your fix guidance PR is ready on GitHub.
               </div>
+              {filesFixed.length > 0 && (
+                <div style={{
+                  textAlign: 'left', background: '#faf9f6', border: '1px solid #e6e2db',
+                  borderRadius: 9, padding: '9px 12px', marginBottom: 18,
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>
+                    {filesFixed.length} file{filesFixed.length === 1 ? '' : 's'} changed
+                  </div>
+                  {filesFixed.map(f => (
+                    <div key={f} style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              )}
               {prUrl && (
                 <a
                   href={prUrl}

@@ -18,6 +18,10 @@ import DastResultPage from './Dast/DastResultPage';
 import TeamPage from './Team/TeamPage';
 import AuditLogsPage from './AuditLogsPage';
 import DeveloperCreditsPage from './DeveloperCreditsPage';
+import GraphPage from './Graph/GraphPage';
+import SessionScansPage from './SessionScansPage';
+import DependencyScanPage from './DependencyScanPage';
+import MultiRepoScanPage from './Scan/MultiRepoScanPage';
 import type { DevMembership } from './workspaceTypes';
 
 interface User {
@@ -46,6 +50,10 @@ const TAB_LABELS: Record<string, string> = {
     'dast-result':  'DAST Result',
     'team':         'Team',
     'audit-logs':   'Audit Logs',
+    'graph':        'Knowledge Graph',
+    'dependencies': 'Dependency Scan',
+    'multi-repo':   'Multi-Repo Scan',
+    'session':      'Session Scans',
 };
 
 // ── Paths that are standalone pages (open in their own tab).
@@ -129,12 +137,19 @@ const Dashboard: React.FC = () => {
         '/dast':         'dast',
         '/team':         'team',
         '/audit-logs':   'audit-logs',
+        '/graph':        'graph',
+        '/dependencies': 'dependencies',
+        '/multi-repo':   'multi-repo',
     };
 
     const activeTab = location.pathname.startsWith('/dast/result/')
         ? 'dast-result'
-        : (pathToTab[location.pathname] ??
-            (location.pathname.startsWith('/scan/') ? 'history-scan' : 'overview'));
+        : location.pathname.startsWith('/graph/')
+            ? 'graph'
+            : location.pathname.startsWith('/session/')
+                ? 'session'
+                : (pathToTab[location.pathname] ??
+                    (location.pathname.startsWith('/scan/') ? 'history-scan' : 'overview'));
 
     // ── Page title ───────────────────────────────────────────────────────────
     useEffect(() => {
@@ -158,6 +173,9 @@ const Dashboard: React.FC = () => {
             'dast':         '/dast',
             'team':         '/team',
             'audit-logs':   '/audit-logs',
+            'graph':        '/graph',
+            'dependencies': '/dependencies',
+            'multi-repo':   '/multi-repo',
         };
         navigate(tabToPath[tab] ?? '/overview');
     };
@@ -291,6 +309,10 @@ const Dashboard: React.FC = () => {
             case 'dast-result':  return <DastResultPage />;
             case 'team':         return isAdmin ? <TeamPage /> : <OverviewPage user={user} />;
             case 'audit-logs':   return isAdmin ? <AuditLogsPage /> : <OverviewPage user={user} />;
+            case 'graph':        return <GraphPage />;
+            case 'dependencies': return <DependencyScanPage />;
+            case 'multi-repo':   return <MultiRepoScanPage />;
+            case 'session':      return <SessionScansPage />;
             default:             return <OverviewPage user={user} />;
         }
     };

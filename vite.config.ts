@@ -6,6 +6,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // The dev server runs in a container with the source bind-mounted from
+    // Windows. Filesystem events do not cross that boundary, so Vite never
+    // sees edits and HMR silently never fires — polling is the only reliable
+    // way to pick up changes in this setup.
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
     proxy: {
       '/api': {
         // In Docker compose the gateway service is reachable by name.

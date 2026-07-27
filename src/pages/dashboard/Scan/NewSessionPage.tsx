@@ -403,7 +403,10 @@ const FileUploadCard: React.FC<{
 
 // ─── Connected Repo Card (GitHub + GitLab tabs) ───────────────────────────────
 
-const ConnectedRepoCard: React.FC<{
+// Exported so the Multi-Repo page can reuse the exact same picker (tabs,
+// "Repos to scan" stepper, search, create, selection chips) rather than
+// re-implementing a second, divergent repo selector.
+export const ConnectedRepoCard: React.FC<{
   selectedGithubRepos: Repository[];
   onSelectGithub: (repos: Repository[]) => void;
   selectedGitlabRepos: GitLabProject[];

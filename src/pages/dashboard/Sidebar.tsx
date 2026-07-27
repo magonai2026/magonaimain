@@ -41,6 +41,32 @@ const IC = {
             <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" />
         </svg>
     ),
+    graph: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="6" cy="6" r="2.5" />
+            <circle cx="18" cy="7" r="2.5" />
+            <circle cx="12" cy="17.5" r="2.5" />
+            <path d="M7.9 7.6 10.5 15.4" />
+            <path d="M16.2 8.9 13.6 15.6" />
+            <path d="M8.5 6.3h7" />
+        </svg>
+    ),
+    multiRepo: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2.5" y="3" width="8" height="7" rx="1.5" />
+            <rect x="13.5" y="3" width="8" height="7" rx="1.5" />
+            <rect x="8" y="14" width="8" height="7" rx="1.5" />
+            <path d="M6.5 10v2.5h11V10" />
+            <path d="M12 12.5V14" />
+        </svg>
+    ),
+    dependencies: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2 3 7v10l9 5 9-5V7z" />
+            <path d="m3 7 9 5 9-5" />
+            <path d="M12 12v10" />
+        </svg>
+    ),
     credits: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="9" />
@@ -113,6 +139,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     const regularItems = [
         { id: 'overview',     label: 'Overview',     icon: IC.overview,      show: true },
         { id: 'history',      label: 'History',      icon: IC.history,       show: !isDev || !!perms?.scan },
+        { id: 'multi-repo',   label: 'Multi-Repo',   icon: IC.multiRepo,     show: !isDev || !!perms?.scan },
+        { id: 'graph',        label: 'Graph',        icon: IC.graph,         show: !isDev || !!perms?.scan },
+        { id: 'dependencies', label: 'Dependencies', icon: IC.dependencies,  show: !isDev || !!perms?.scan },
         { id: 'credits',      label: 'Credits',      icon: IC.credits,       show: true },
         { id: 'integrations', label: 'Integrations', icon: IC.integrations,  show: true },
         { id: 'profile',      label: 'Profile',      icon: IC.profile,       show: true },

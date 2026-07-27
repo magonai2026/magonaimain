@@ -101,6 +101,11 @@ const App: React.FC = () => {
         <Route path="/dast/result/:scanId" element={<Dashboard />} />
         <Route path="/team"         element={<Dashboard />} />
         <Route path="/audit-logs"   element={<Dashboard />} />
+        <Route path="/graph"        element={<Dashboard />} />
+        <Route path="/dependencies" element={<Dashboard />} />
+        <Route path="/multi-repo"   element={<Dashboard />} />
+        <Route path="/graph/:groupScanId" element={<Dashboard />} />
+        <Route path="/session/:sessionId" element={<Dashboard />} />
 
         {/* Workspace invitation acceptance — standalone page */}
         <Route path="/join" element={<WorkspaceJoinPage />} />

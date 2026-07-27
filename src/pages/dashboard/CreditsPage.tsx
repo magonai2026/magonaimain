@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import ScanUsageChart from "./ScanUsageChart";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -716,6 +717,9 @@ const CreditsPage: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* ── Scan credit usage (scanner-side debit ledger) ── */}
+      <ScanUsageChart />
 
       {/* ── Transaction History ── */}
       <div className="cp2-section-heading">Transaction History</div>
