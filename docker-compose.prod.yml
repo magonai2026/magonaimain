@@ -5,7 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      # Bound to loopback so only the host's nginx can reach it. Publishing on
+      # 0.0.0.0 put the gateway straight on the public internet, letting anyone
+      # bypass nginx — and with it the rate limiting and TLS termination.
+      - "127.0.0.1:3000:3000"
     env_file:
       - .env.production
     environment:
