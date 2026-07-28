@@ -13,6 +13,7 @@ import {
     type EdgeType,
 } from './graphTypes';
 import { runLayout } from './forceLayout';
+import GroupPicker from './GroupPicker';
 
 /**
  * Knowledge graph viewer — GET /api/scan/graph/:groupScanId
@@ -158,6 +159,47 @@ const CSS = `
     color: #f87171; padding: 3px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
     font-family: 'Instrument Sans', sans-serif;
   }
+
+  /* ── Scan-group picker ── */
+  .gv-picker {
+    background: #13151F; border: 1px solid rgba(99,102,241,0.16);
+    border-radius: 12px; padding: 13px 14px;
+    animation: gv-fadein 0.25s ease both;
+  }
+  .gv-picker-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+  .gv-picker-refresh {
+    margin-left: auto; background: #0B0D14; border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 7px; color: #9BA3BF; padding: 4px 7px; cursor: pointer;
+    display: flex; align-items: center; transition: all 0.15s;
+  }
+  .gv-picker-refresh:hover:not(:disabled) { border-color: rgba(99,102,241,0.42); color: #E8EEFF; }
+  .gv-picker-refresh:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .gv-picker-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+
+  .gv-picker-row {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: #0B0D14; border: 1px solid rgba(99,102,241,0.12);
+    border-radius: 10px; padding: 9px 11px; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif; transition: all 0.15s;
+  }
+  .gv-picker-row:hover { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.06); }
+  .gv-picker-row.active { border-color: rgba(129,140,248,0.6); background: rgba(99,102,241,0.1); }
+
+  .gv-picker-badge {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, #4f46e5, #7c3aed);
+    color: #fff; font-weight: 800; font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .gv-link-btn {
+    background: none; border: none; cursor: pointer; padding: 8px 2px 0;
+    color: #5C6480; font-size: 11.5px; font-weight: 600;
+    font-family: 'Instrument Sans', sans-serif; transition: color 0.15s;
+  }
+  .gv-link-btn:hover { color: #818cf8; }
 `;
 
 const VIEW_W = 1100;
@@ -175,6 +217,7 @@ const GraphPage: React.FC = () => {
 
     const [groupId, setGroupId]   = useState(initialId);
     const [inputId, setInputId]   = useState(initialId);
+    const [showIdEntry, setShowIdEntry] = useState(false);
     const [graph, setGraph]       = useState<GraphResponse | null>(null);
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState<string | null>(null);
@@ -389,8 +432,14 @@ const GraphPage: React.FC = () => {
         e.preventDefault();
         const trimmed = inputId.trim();
         if (!trimmed) return;
-        setGroupId(trimmed);
-        navigate(`/graph/${encodeURIComponent(trimmed)}`, { replace: true });
+        selectGroup(trimmed);
+    };
+
+    /** Load a group and reflect it in the URL so the view is shareable. */
+    const selectGroup = (id: string) => {
+        setGroupId(id);
+        setInputId(id);
+        navigate(`/graph/${encodeURIComponent(id)}`, { replace: true });
     };
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -418,23 +467,38 @@ const GraphPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* ── Group id input ── */}
-            <form onSubmit={submitId} style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
-                <input
-                    className="gv-input"
-                    style={{ flex: 1, minWidth: 260 }}
-                    placeholder="Group scan ID (from the scan that produced the graph)…"
-                    value={inputId}
-                    onChange={e => setInputId(e.target.value)}
-                    aria-label="Group scan ID"
-                />
-                <button type="submit" className="gv-btn gv-btn-primary" disabled={!inputId.trim() || loading}>
-                    Load graph
+            {/* ── Pick a scan by repo, the same way Multi-Repo does ── */}
+            <div style={{ maxWidth: 560, marginBottom: 18 }}>
+                <GroupPicker activeGroupId={groupId} onSelect={selectGroup} />
+
+                {/* Raw id entry stays available for links shared between users
+                    or ids copied out of the API, but it is not the main path. */}
+                <button
+                    className="gv-link-btn"
+                    onClick={() => setShowIdEntry(v => !v)}
+                >
+                    {showIdEntry ? '− Hide manual ID entry' : '+ Enter a group scan ID manually'}
                 </button>
-                {groupId && (
-                    <button type="button" className="gv-btn" onClick={copyId} title="Copy group scan ID">Copy ID</button>
+
+                {showIdEntry && (
+                    <form onSubmit={submitId} style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                        <input
+                            className="gv-input"
+                            style={{ flex: 1, minWidth: 240 }}
+                            placeholder="Group scan ID…"
+                            value={inputId}
+                            onChange={e => setInputId(e.target.value)}
+                            aria-label="Group scan ID"
+                        />
+                        <button type="submit" className="gv-btn gv-btn-primary" disabled={!inputId.trim() || loading}>
+                            Load
+                        </button>
+                        {groupId && (
+                            <button type="button" className="gv-btn" onClick={copyId} title="Copy group scan ID">Copy ID</button>
+                        )}
+                    </form>
                 )}
-            </form>
+            </div>
 
             {error && (
                 <div className="gv-inline-error">
@@ -457,11 +521,11 @@ const GraphPage: React.FC = () => {
                     <div className="gv-empty-icon">🕸</div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: '#9BA3BF' }}>No graph loaded</div>
                     <div style={{ fontSize: 13, color: '#5C6480', maxWidth: 380, lineHeight: 1.6 }}>
-                        Paste a group scan ID above, or open the graph from a scan in your history.
-                        Graphs are built automatically during every scan.
+                        Pick one of your scans above to see its graph. Graphs are built
+                        automatically during every scan — multi-repo scans show cross-service calls.
                     </div>
-                    <button className="gv-btn gv-btn-primary" onClick={() => navigate('/history')}>
-                        Go to scan history
+                    <button className="gv-btn gv-btn-primary" onClick={() => navigate('/multi-repo')}>
+                        Start a multi-repo scan
                     </button>
                 </div>
             )}
