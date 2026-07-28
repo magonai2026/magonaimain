@@ -47,6 +47,9 @@ if (!process.env.CLIENT_URL) {
 const ALLOWED_ORIGINS = [...new Set([
   "https://magonai.com",
   "https://www.magonai.com",
+  "https://scan.magonai.com",
+  "https://auth.magonai.com",
+
   ...(process.env.CLIENT_URL || "").split(",").map(o => o.trim()),
 ])].filter(Boolean);
 
