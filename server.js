@@ -26,7 +26,7 @@ app.set("etag", false);
 
 const PORT         = process.env.PORT || 3000;
 const OTP_API_BASE = process.env.OTP_API_BASE;
-const SCANNER_BASE = process.env.SCANNER_API_BASE || "https://scan.niyantrilabs.com";
+const SCANNER_BASE = process.env.SCANNER_API_BASE || "https://scan.magonai.com";
 const SCAN_SERVER_HOST = "cli.niyantrisecurityai.com";
 const DAST_INTERNAL_SECRET = process.env.DAST_INTERNAL_SECRET;
 app.set('trust proxy', 1);
@@ -38,16 +38,17 @@ if (!process.env.CLIENT_URL) {
   );
 }
 
-const ALLOWED_ORIGINS = [
-  "https://auth.niyantrilabs.com",
-  "https://scan.niyantrilabs.com",
-  "https://www.niyantrisecurityai.com",
-  "https://www.cli.niyantrisecurityai.com",
-  "https://auth.niyantrisecurityai.com",
-  "https://zps.niyantrisecurityai.com",
-
-  process.env.CLIENT_URL,
-].filter(Boolean);
+// Browser origins allowed to call this gateway. Only the magonai frontend runs
+// in a browser — the auth, scan, CLI and DAST services are server-to-server
+// callers that never send an Origin header, so they never belonged here.
+//
+// CLIENT_URL may hold several comma-separated origins; the check below is an
+// exact includes() match, so it has to be split or it can never match.
+const ALLOWED_ORIGINS = [...new Set([
+  "https://magonai.com",
+  "https://www.magonai.com",
+  ...(process.env.CLIENT_URL || "").split(",").map(o => o.trim()),
+])].filter(Boolean);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
