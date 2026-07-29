@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { ConnectedRepoCard, type Repository } from './NewSessionPage';
 import type { GitLabProject } from '../GitLabRepoList';
+import MultiRepoResults from './MultiRepoResults';
+import GroupPicker from '../Graph/GroupPicker';
 
 /**
  * Multi-repo scan — POST /api/scan/github/deep/stream
@@ -149,6 +151,11 @@ const MultiRepoScanPage: React.FC = () => {
     const [groupId, setGroupId]   = useState<string | null>(null);
     const [progress, setProgress] = useState<Record<string, RepoProgress>>({});
 
+    // Which group's results are on screen. Set automatically by a run, or
+    // chosen from history so past groups can be reviewed here too.
+    const [viewGroupId, setViewGroupId] = useState<string | null>(null);
+    const [showPicker, setShowPicker]   = useState(false);
+
     const abortRef = useRef<AbortController | null>(null);
     useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -248,7 +255,12 @@ const MultiRepoScanPage: React.FC = () => {
                     let evt: any;
                     try { evt = JSON.parse(line.slice(5).trim()); } catch { continue; }
 
-                    if (evt.group_scan_id) setGroupId(evt.group_scan_id);
+                    if (evt.group_scan_id) {
+                        setGroupId(evt.group_scan_id);
+                        // Show this run's results panel as soon as the group
+                        // exists, so repos appear in it as they finish.
+                        setViewGroupId(evt.group_scan_id);
+                    }
 
                     const key = evt.repo_url;
                     if (!key) continue;
@@ -456,12 +468,49 @@ const MultiRepoScanPage: React.FC = () => {
                 </>
             )}
 
-            {selected.length === 0 && (
+            {selected.length === 0 && !viewGroupId && (
                 <div style={{ textAlign: 'center', padding: '40px 0', color: '#5C6480', fontSize: 13.5, lineHeight: 1.7 }}>
                     No repositories selected yet.<br />
                     Raise “Repos to scan” to 2 or more and select services that talk to each other to see cross-repo calls in the graph.
                 </div>
             )}
+
+            {/* ── Results ─────────────────────────────────────────────────── */}
+            <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid rgba(99,102,241,0.14)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: '#5C6480', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                        Results
+                    </span>
+                    <button className="mr-ghost" onClick={() => setShowPicker(v => !v)}>
+                        {showPicker ? 'Hide past scans' : 'View a past scan group'}
+                    </button>
+                    {viewGroupId && !running && (
+                        <button className="mr-ghost" onClick={() => { setViewGroupId(null); setShowPicker(false); }}>
+                            Clear
+                        </button>
+                    )}
+                </div>
+
+                {showPicker && (
+                    <div style={{ maxWidth: 560, marginBottom: 16 }}>
+                        <GroupPicker
+                            activeGroupId={viewGroupId ?? undefined}
+                            onSelect={id => { setViewGroupId(id); setShowPicker(false); }}
+                        />
+                    </div>
+                )}
+
+                {viewGroupId ? (
+                    <MultiRepoResults groupScanId={viewGroupId} live={running} />
+                ) : (
+                    !showPicker && (
+                        <div style={{ color: '#5C6480', fontSize: 13, lineHeight: 1.7 }}>
+                            Run a scan above, or pick a past scan group to see its combined findings —
+                            totals, per-repo breakdown, cross-repo calls and every vulnerability in one list.
+                        </div>
+                    )
+                )}
+            </div>
         </div>
     );
 };
